@@ -23,7 +23,7 @@ class TestDio extends ConsumerWidget {
             onTap: () async {
               await HttpManager().getAsync<Map<String, dynamic>>(
                 "/get",
-                params: {"age": 12, "name": "zs"},
+                queryParameters: {"age": 12, "name": "zs"},
               );
             },
           ),
@@ -88,12 +88,14 @@ class TestDio extends ConsumerWidget {
               final path =
                   "${(await getTemporaryDirectory()).path}/img_$id.jpg";
 
-              await HttpManager().downloadAsync(
+              final ss = await HttpManager().downloadAsync(
                 "https://gss0.baidu.com/9vo3dSag_xI4khGko9WTAnF6hhy/zhidao/pic/item/b03533fa828ba61eb14e6fa24734970a314e599e.jpg",
                 savePath: path,
                 onReceiveProgress: (count, total) =>
                     debugPrint("count $count ==== total $total"),
               );
+
+              debugPrint(ss);
             },
           ),
         ],

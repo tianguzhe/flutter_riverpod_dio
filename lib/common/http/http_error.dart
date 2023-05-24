@@ -1,86 +1,36 @@
 import 'package:dio/dio.dart';
 
-/// @desc  网络请求错误
-/// @time 2019/3/20 10:02 AM
-/// @author Cheney
-class HttpError {
-  ///HTTP 状态码
-  static const int UNAUTHORIZED = 401;
-  static const int FORBIDDEN = 403;
-  static const int NOT_FOUND = 404;
-  static const int REQUEST_TIMEOUT = 408;
-  static const int INTERNAL_SERVER_ERROR = 500;
-  static const int BAD_GATEWAY = 502;
-  static const int SERVICE_UNAVAILABLE = 503;
-  static const int GATEWAY_TIMEOUT = 504;
+class ApiException implements Exception {
+  static const unknownCode = -1;
+  static const unknownException = "未知错误";
 
-  ///未知错误
-  static const String UNKNOWN = "UNKNOWN";
+  final int code;
+  final String? message;
 
-  ///解析错误
-  static const String PARSE_ERROR = "PARSE_ERROR";
+  ApiException(this.code, this.message);
 
-  ///网络错误
-  static const String NETWORK_ERROR = "NETWORK_ERROR";
-
-  ///协议错误
-  static const String HTTP_ERROR = "HTTP_ERROR";
-
-  ///证书错误
-  static const String SSL_ERROR = "SSL_ERROR";
-
-  ///连接超时
-  static const String CONNECT_TIMEOUT = "CONNECT_TIMEOUT";
-
-  ///响应超时
-  static const String RECEIVE_TIMEOUT = "RECEIVE_TIMEOUT";
-
-  ///发送超时
-  static const String SEND_TIMEOUT = "SEND_TIMEOUT";
-
-  ///网络请求取消
-  static const String CANCEL = "CANCEL";
-
-  late String code;
-
-  late String message;
-
-  HttpError(this.code, this.message);
-
-  HttpError.dioError(DioError error) {
-    message = error.message!;
+  factory ApiException.dioError(DioError error) {
     switch (error.type) {
-      case DioErrorType.connectionTimeout:
-        code = CONNECT_TIMEOUT;
-        message = "网络连接超时，请检查网络设置";
-        break;
-      case DioErrorType.receiveTimeout:
-        code = RECEIVE_TIMEOUT;
-        message = "服务器异常，请稍后重试！";
-        break;
-      case DioErrorType.sendTimeout:
-        code = SEND_TIMEOUT;
-        message = "网络连接超时，请检查网络设置";
-        break;
-      case DioErrorType.badResponse:
-        code = HTTP_ERROR;
-        message = "服务器异常，请稍后重试！";
-        break;
       case DioErrorType.cancel:
-        code = CANCEL;
-        message = "请求已被取消，请重新请求";
-        break;
-      case DioErrorType.unknown:
-        code = UNKNOWN;
-        message = "网络异常，请稍后重试！";
-        break;
+        return BadRequestException(unknownCode, "请求取消");
+      case DioErrorType.connectionTimeout:
+        return BadRequestException(unknownCode, "连接超时");
+      case DioErrorType.sendTimeout:
+        return BadRequestException(unknownCode, "请求超时");
+      case DioErrorType.receiveTimeout:
+        return BadRequestException(unknownCode, "响应超时");
       default:
-        break;
+        return ApiException(unknownCode, error.message);
     }
   }
 
   @override
   String toString() {
-    return 'HttpError{code: $code, message: $message}';
+    return 'HttpError {code: $code, message: $message}';
   }
+}
+
+/// 请求错误
+class BadRequestException extends ApiException {
+  BadRequestException(int code, String message) : super(code, message);
 }

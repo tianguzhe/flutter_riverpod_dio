@@ -38,7 +38,7 @@ class AsyncHttpBin extends _$AsyncHttpBin {
 
     final jsonResp = await HttpManager().getAsync<Map<String, dynamic>>(
       "/get",
-      params: {"age": 12, "name": "zs"},
+      queryParameters: {"age": 12, "name": "zs"},
     );
     final json = HttpBinModel.fromJson(jsonResp);
 

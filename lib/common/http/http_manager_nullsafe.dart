@@ -14,12 +14,12 @@ class HttpManager {
   final Map<String, CancelToken> _cancelTokens = <String, CancelToken>{};
 
   ///超时时间
-  static const int CONNECT_TIMEOUT = 30000;
-  static const int RECEIVE_TIMEOUT = 30000;
+  static const Duration connectTimeout = Duration(milliseconds: 30000);
+  static const Duration receiveTimeout = Duration(milliseconds: 30000);
 
   /// http request methods
-  static const String GET = "get";
-  static const String POST = "post";
+  static const String get = "get";
+  static const String post = "post";
 
   late Dio _client;
 
@@ -32,8 +32,11 @@ class HttpManager {
   /// 创建 dio 实例对象
   HttpManager._internal() {
     BaseOptions options = BaseOptions(
-      connectTimeout: const Duration(milliseconds: CONNECT_TIMEOUT),
-      receiveTimeout: const Duration(milliseconds: RECEIVE_TIMEOUT),
+      connectTimeout: connectTimeout,
+      receiveTimeout: receiveTimeout,
+      headers: {
+        "version": "1.0.0",
+      },
     );
     _client = Dio(options);
   }
@@ -46,8 +49,8 @@ class HttpManager {
   /// [interceptors] 基础拦截器
   void init(
     String baseUrl, {
-    Duration connectTimeout = const Duration(milliseconds: CONNECT_TIMEOUT),
-    Duration receiveTimeout = const Duration(milliseconds: CONNECT_TIMEOUT),
+    Duration connectTimeout = connectTimeout,
+    Duration receiveTimeout = receiveTimeout,
     List<Interceptor>? interceptors,
   }) {
     _client.options = _client.options.copyWith(
@@ -69,16 +72,16 @@ class HttpManager {
   ///[tag] 请求统一标识，用于取消网络请求
   Future<T> getAsync<T>(
     String url, {
-    Map<String, dynamic>? params,
-    Options? options,
+    Map<String, Object>? queryParameters,
+    Map<String, dynamic>? headers,
     JsonParse<T>? jsonParse,
     String? tag,
   }) async {
     return _requestAsync(
       url: url,
-      method: GET,
-      params: params,
-      options: options,
+      method: get,
+      queryParameters: queryParameters,
+      headers: headers,
       jsonParse: jsonParse,
       tag: tag,
     );
@@ -93,18 +96,18 @@ class HttpManager {
   ///[tag] 请求统一标识，用于取消网络请求
   Future<T> postAsync<T>(
     String url, {
+    Map<String, Object>? queryParameters,
     Object? data,
-    Map<String, dynamic>? params,
-    Options? options,
+    Map<String, dynamic>? headers,
     JsonParse<T>? jsonParse,
     String? tag,
   }) async {
     return _requestAsync(
       url: url,
-      method: POST,
+      method: post,
+      queryParameters: queryParameters,
       data: data,
-      params: params,
-      options: options,
+      headers: headers,
       jsonParse: jsonParse,
       tag: tag,
     );
@@ -119,27 +122,20 @@ class HttpManager {
   ///[tag] 请求统一标识，用于取消网络请求
   Future<T> _requestAsync<T>({
     required String url,
-    String? method,
+    required String method,
+    Map<String, Object>? queryParameters,
     Object? data,
-    Map<String, dynamic>? params,
-    Options? options,
+    Map<String, dynamic>? headers,
     JsonParse<T>? jsonParse,
     String? tag,
   }) async {
     await _checkNetwork();
 
-    //设置默认值
-    params = params ?? {};
-    method = method ?? 'GET';
-
-    options?.method = method;
-
-    options = options ??
-        Options(
-          method: method,
-        );
-
     try {
+      Options options = Options()
+        ..method = method
+        ..headers = headers;
+
       CancelToken? cancelToken;
       if (tag != null) {
         cancelToken = _cancelTokens[tag] ?? CancelToken();
@@ -148,35 +144,20 @@ class HttpManager {
 
       Response<Map<String, dynamic>> response = await _client.request(
         url,
-        queryParameters: params,
+        queryParameters: queryParameters,
         data: data,
         options: options,
         cancelToken: cancelToken,
       );
 
-      final statusCode = response.statusCode;
-
-      if (statusCode == HttpStatus.ok) {
-        //成功
-        if (jsonParse != null) {
-          return jsonParse(response.data);
-        } else {
-          return response.data as T;
-        }
-      } else {
-        //失败
-        LogUtil.v("请求服务器出错：${response.statusCode}");
-        //只能用 Future，外层有 try catch
-        return Future.error((HttpError(statusCode.toString(), "请求服务器出错：")));
-      }
+      return _handleResponse(response, jsonParse: jsonParse);
     } on DioError catch (e, s) {
       LogUtil.v("请求出错：$e\n$s");
-      throw (HttpError.dioError(e));
-      // throw Error();
+      throw ApiException.dioError(e);
     } catch (e, s) {
       LogUtil.v("未知异常出错：$e\n$s");
-      throw (HttpError(HttpError.UNKNOWN, "网络异常，请稍后重试！"));
-      // throw Error();
+      throw ApiException(
+          ApiException.unknownCode, ApiException.unknownException);
     }
   }
 
@@ -189,39 +170,41 @@ class HttpManager {
   ///[params] url请求参数支持restful
   ///[options] 请求配置
   ///[tag] 请求统一标识，用于取消网络请求
-  Future<Response> downloadAsync(
+  Future<String> downloadAsync(
     String url, {
-    required Object savePath,
+    required String savePath,
     ProgressCallback? onReceiveProgress,
-    Map<String, dynamic>? params,
+    Map<String, Object>? queryParameters,
     Object? data,
-    Options? options,
+    Map<String, dynamic>? headers,
     String? tag,
   }) async {
     await _checkNetwork();
 
-    //设置默认值
-    params = params ?? {};
-
     try {
+      Options options = Options()..headers = headers;
+
       CancelToken? cancelToken;
       if (tag != null) {
         cancelToken = _cancelTokens[tag] ?? CancelToken();
         _cancelTokens[tag] = cancelToken;
       }
 
-      return _client.download(url, savePath,
+      Response<dynamic> response = await _client.download(url, savePath,
           onReceiveProgress: onReceiveProgress,
-          queryParameters: params,
+          queryParameters: queryParameters,
           data: data,
           options: options,
           cancelToken: cancelToken);
+
+      return _handleResponse<String>(response, downDonePath: savePath);
     } on DioError catch (e, s) {
       LogUtil.v("请求出错：$e\n$s");
-      throw (HttpError.dioError(e));
+      throw ApiException.dioError(e);
     } catch (e, s) {
       LogUtil.v("未知异常出错：$e\n$s");
-      throw (HttpError(HttpError.UNKNOWN, "网络异常，请稍后重试！"));
+      throw ApiException(
+          ApiException.unknownCode, ApiException.unknownException);
     }
   }
 
@@ -238,22 +221,14 @@ class HttpManager {
     required FormData data,
     ProgressCallback? onSendProgress,
     Map<String, dynamic>? params,
-    Options? options,
-    JsonParse<T>? jsonParse,
+    Map<String, dynamic>? headers,
     String? tag,
   }) async {
     await _checkNetwork();
 
-    //设置默认值
-    params = params ?? {};
-
-    //强制 POST 请求
-    options?.method = POST;
-
-    options = options ??
-        Options(
-          method: POST,
-        );
+    Options options = Options()
+      ..method = "post"
+      ..headers = headers;
 
     try {
       CancelToken? cancelToken;
@@ -262,34 +237,21 @@ class HttpManager {
         _cancelTokens[tag] = cancelToken;
       }
 
-      Response<Map<String, dynamic>> response = await _client.request(url,
+      Response response = await _client.request(url,
           onSendProgress: onSendProgress,
           data: data,
           queryParameters: params,
           options: options,
           cancelToken: cancelToken);
 
-      final statusCode = response.statusCode;
-
-      if (statusCode == HttpStatus.ok) {
-        //成功
-        if (jsonParse != null) {
-          return jsonParse(response.data);
-        } else {
-          return response.data as T;
-        }
-      } else {
-        //失败
-        LogUtil.v("请求服务器出错：${response.statusCode}");
-        //只能用 Future，外层有 try catch
-        return Future.error((HttpError(statusCode.toString(), "请求服务器出错：")));
-      }
+      return _handleResponse(response);
     } on DioError catch (e, s) {
       LogUtil.v("请求出错：$e\n$s");
-      throw (HttpError.dioError(e));
+      throw ApiException.dioError(e);
     } catch (e, s) {
       LogUtil.v("未知异常出错：$e\n$s");
-      throw (HttpError(HttpError.UNKNOWN, "网络异常，请稍后重试！"));
+      throw ApiException(
+          ApiException.unknownCode, ApiException.unknownException);
     }
   }
 
@@ -300,7 +262,22 @@ class HttpManager {
 
     if (connectivityResult == ConnectivityResult.none) {
       LogUtil.v("请求网络异常，请稍后重试！");
-      throw (HttpError(HttpError.NETWORK_ERROR, "网络异常，请稍后重试！"));
+      throw ApiException(ApiException.unknownCode, "网络异常，请稍后重试！");
+    }
+  }
+
+  T _handleResponse<T>(Response response,
+      {JsonParse<T>? jsonParse, String? downDonePath}) {
+    if (response.statusCode == HttpStatus.ok) {
+      if (jsonParse != null) {
+        return jsonParse(response.data);
+      } else {
+        if (downDonePath != null) return downDonePath as T;
+        return response.data as T;
+      }
+    } else {
+      throw ApiException(
+          ApiException.unknownCode, ApiException.unknownException);
     }
   }
 
