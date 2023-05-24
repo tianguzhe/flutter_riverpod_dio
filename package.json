@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "fpg": "flutter pub get",
+    "drb": "dart run build_runner build",
+    "drb:watch": "dart run build_runner watch"
+  }
+}
