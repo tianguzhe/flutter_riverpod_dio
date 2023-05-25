@@ -18,8 +18,8 @@ class HttpManager {
   static const Duration receiveTimeout = Duration(milliseconds: 30000);
 
   /// http request methods
-  static const String get = "get";
-  static const String post = "post";
+  static const String get = "GET";
+  static const String post = "POST";
 
   late Dio _client;
 
@@ -122,6 +122,7 @@ class HttpManager {
   ///[data] post 请求参数
   ///[options] 请求配置
   ///[jsonParse] json解析
+  ///[onSendProgress] 上传进度
   ///[tag] 请求统一标识，用于取消网络请求
   Future<T> _requestAsync<T>({
     required String url,
@@ -130,6 +131,7 @@ class HttpManager {
     Object? data,
     Options? options,
     JsonParse<T>? jsonParse,
+    ProgressCallback? onSendProgress,
     String? tag,
   }) async {
     await _checkNetwork();
@@ -150,6 +152,7 @@ class HttpManager {
         data: data,
         options: options,
         cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
       );
 
       return _handleResponse(response, jsonParse: jsonParse);
@@ -175,38 +178,19 @@ class HttpManager {
     String url, {
     required FormData data,
     ProgressCallback? onSendProgress,
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object>? queryParameters,
     Options? options,
     String? tag,
   }) async {
-    await _checkNetwork();
-
-    options = options != null ? options.copyWith(method: "post") : Options()
-      ..method = "post";
-
-    try {
-      CancelToken? cancelToken;
-      if (tag != null) {
-        cancelToken = _cancelTokens[tag] ?? CancelToken();
-        _cancelTokens[tag] = cancelToken;
-      }
-
-      Response response = await _client.request(url,
-          onSendProgress: onSendProgress,
-          data: data,
-          queryParameters: queryParameters,
-          options: options,
-          cancelToken: cancelToken);
-
-      return _handleResponse(response);
-    } on DioError catch (e, s) {
-      LogUtil.v("请求出错：$e\n$s");
-      throw ApiException.dioError(e);
-    } catch (e, s) {
-      LogUtil.v("未知异常出错：$e\n$s");
-      throw ApiException(
-          ApiException.unknownCode, ApiException.unknownException);
-    }
+    return _requestAsync(
+      url: url,
+      method: post,
+      queryParameters: queryParameters,
+      data: data,
+      onSendProgress: onSendProgress,
+      options: options,
+      tag: tag,
+    );
   }
 
   ///异步下载文件
