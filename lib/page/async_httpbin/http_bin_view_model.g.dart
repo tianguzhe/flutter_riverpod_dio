@@ -9,12 +9,14 @@ part of 'http_bin_view_model.dart';
 _$_Headers _$$_HeadersFromJson(Map<String, dynamic> json) => _$_Headers(
       userAgent: json['User-Agent'] as String,
       traceId: json['X-Amzn-Trace-Id'] as String,
+      bbc: json['Aabbcc'] as String?,
     );
 
 Map<String, dynamic> _$$_HeadersToJson(_$_Headers instance) =>
     <String, dynamic>{
       'User-Agent': instance.userAgent,
       'X-Amzn-Trace-Id': instance.traceId,
+      'Aabbcc': instance.bbc,
     };
 
 _$_HttpBinModel _$$_HttpBinModelFromJson(Map<String, dynamic> json) =>
@@ -33,7 +35,7 @@ Map<String, dynamic> _$$_HttpBinModelToJson(_$_HttpBinModel instance) =>
 // RiverpodGenerator
 // **************************************************************************
 
-String _$asyncHttpBinHash() => r'87a5c80915ba19834b72197b8196cb86fd40ccc2';
+String _$asyncHttpBinHash() => r'79adb704f6a0997322e692b3cd7575545cd5b2fd';
 
 /// See also [AsyncHttpBin].
 @ProviderFor(AsyncHttpBin)

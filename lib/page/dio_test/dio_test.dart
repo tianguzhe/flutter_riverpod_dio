@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_riverpod_demo/common/http/http_manager_nullsafe.dart';
+import 'package:flutter_riverpod_demo/common/http/http_manager.dart';
+import 'package:flutter_riverpod_demo/page/async_httpbin/http_bin_view_model.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nanoid/non_secure.dart';
@@ -21,10 +22,39 @@ class TestDio extends ConsumerWidget {
           ListTile(
             title: const Text("get 请求"),
             onTap: () async {
-              await HttpManager().getAsync<Map<String, dynamic>>(
+              final httpBinResp =
+                  await HttpManager().getAsync<Map<String, dynamic>>(
                 "/get",
                 queryParameters: {"age": 12, "name": "zs"},
+                options: Options(
+                  headers: {"bbc": "dio"},
+                ),
               );
+
+              final httpBin = HttpBinModel.fromJson(httpBinResp);
+
+              debugPrint(httpBin.headers.userAgent);
+              debugPrint(httpBin.headers.bbc);
+            },
+          ),
+          ListTile(
+            title: const Text("get 请求 with Options"),
+            onTap: () async {
+              final httpBin = await HttpManager().getAsync<HttpBinModel>(
+                "/get",
+                queryParameters: {"age": 24, "name": "ls"},
+                options: Options(
+                  headers: {
+                    "aabbcc": "dio",
+                    "User-Agent":
+                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.0.0",
+                  },
+                ),
+                jsonParse: (data) => HttpBinModel.fromJson(data),
+              );
+
+              debugPrint(httpBin.headers.userAgent);
+              debugPrint(httpBin.headers.bbc);
             },
           ),
           ListTile(

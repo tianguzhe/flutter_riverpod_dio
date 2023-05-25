@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod_demo/common/http/http_manager_nullsafe.dart';
+import 'package:flutter_riverpod_demo/common/http/http_manager.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -11,6 +11,7 @@ class Headers with _$Headers {
   factory Headers({
     @JsonKey(name: "User-Agent") required String userAgent,
     @JsonKey(name: "X-Amzn-Trace-Id") required String traceId,
+    @JsonKey(name: "Aabbcc") String? bbc,
   }) = _Headers;
 
   factory Headers.fromJson(Map<String, Object?> json) =>
@@ -31,16 +32,16 @@ class HttpBinModel with _$HttpBinModel {
 @riverpod
 class AsyncHttpBin extends _$AsyncHttpBin {
   Future<HttpBinModel> _fetchTodo() async {
-    // final json = await HttpManager().getAsync<HttpBinModel>(
-    //   "/get",
-    //   jsonParse: (data) => HttpBinModel.fromJson(data),
-    // );
-
-    final jsonResp = await HttpManager().getAsync<Map<String, dynamic>>(
+    final json = await HttpManager().getAsync<HttpBinModel>(
       "/get",
-      queryParameters: {"age": 12, "name": "zs"},
+      jsonParse: (data) => HttpBinModel.fromJson(data),
     );
-    final json = HttpBinModel.fromJson(jsonResp);
+
+    // final jsonResp = await HttpManager().getAsync<Map<String, dynamic>>(
+    //   "/get",
+    //   queryParameters: {"age": 12, "name": "zs"},
+    // );
+    // final json = HttpBinModel.fromJson(jsonResp);
 
     return json;
   }

@@ -24,6 +24,8 @@ mixin _$Headers {
   String get userAgent => throw _privateConstructorUsedError;
   @JsonKey(name: "X-Amzn-Trace-Id")
   String get traceId => throw _privateConstructorUsedError;
+  @JsonKey(name: "Aabbcc")
+  String? get bbc => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -37,7 +39,8 @@ abstract class $HeadersCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: "User-Agent") String userAgent,
-      @JsonKey(name: "X-Amzn-Trace-Id") String traceId});
+      @JsonKey(name: "X-Amzn-Trace-Id") String traceId,
+      @JsonKey(name: "Aabbcc") String? bbc});
 }
 
 /// @nodoc
@@ -55,6 +58,7 @@ class _$HeadersCopyWithImpl<$Res, $Val extends Headers>
   $Res call({
     Object? userAgent = null,
     Object? traceId = null,
+    Object? bbc = freezed,
   }) {
     return _then(_value.copyWith(
       userAgent: null == userAgent
@@ -65,6 +69,10 @@ class _$HeadersCopyWithImpl<$Res, $Val extends Headers>
           ? _value.traceId
           : traceId // ignore: cast_nullable_to_non_nullable
               as String,
+      bbc: freezed == bbc
+          ? _value.bbc
+          : bbc // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -78,7 +86,8 @@ abstract class _$$_HeadersCopyWith<$Res> implements $HeadersCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: "User-Agent") String userAgent,
-      @JsonKey(name: "X-Amzn-Trace-Id") String traceId});
+      @JsonKey(name: "X-Amzn-Trace-Id") String traceId,
+      @JsonKey(name: "Aabbcc") String? bbc});
 }
 
 /// @nodoc
@@ -93,6 +102,7 @@ class __$$_HeadersCopyWithImpl<$Res>
   $Res call({
     Object? userAgent = null,
     Object? traceId = null,
+    Object? bbc = freezed,
   }) {
     return _then(_$_Headers(
       userAgent: null == userAgent
@@ -103,6 +113,10 @@ class __$$_HeadersCopyWithImpl<$Res>
           ? _value.traceId
           : traceId // ignore: cast_nullable_to_non_nullable
               as String,
+      bbc: freezed == bbc
+          ? _value.bbc
+          : bbc // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -112,7 +126,8 @@ class __$$_HeadersCopyWithImpl<$Res>
 class _$_Headers implements _Headers {
   _$_Headers(
       {@JsonKey(name: "User-Agent") required this.userAgent,
-      @JsonKey(name: "X-Amzn-Trace-Id") required this.traceId});
+      @JsonKey(name: "X-Amzn-Trace-Id") required this.traceId,
+      @JsonKey(name: "Aabbcc") this.bbc});
 
   factory _$_Headers.fromJson(Map<String, dynamic> json) =>
       _$$_HeadersFromJson(json);
@@ -123,10 +138,13 @@ class _$_Headers implements _Headers {
   @override
   @JsonKey(name: "X-Amzn-Trace-Id")
   final String traceId;
+  @override
+  @JsonKey(name: "Aabbcc")
+  final String? bbc;
 
   @override
   String toString() {
-    return 'Headers(userAgent: $userAgent, traceId: $traceId)';
+    return 'Headers(userAgent: $userAgent, traceId: $traceId, bbc: $bbc)';
   }
 
   @override
@@ -136,12 +154,13 @@ class _$_Headers implements _Headers {
             other is _$_Headers &&
             (identical(other.userAgent, userAgent) ||
                 other.userAgent == userAgent) &&
-            (identical(other.traceId, traceId) || other.traceId == traceId));
+            (identical(other.traceId, traceId) || other.traceId == traceId) &&
+            (identical(other.bbc, bbc) || other.bbc == bbc));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, userAgent, traceId);
+  int get hashCode => Object.hash(runtimeType, userAgent, traceId, bbc);
 
   @JsonKey(ignore: true)
   @override
@@ -159,9 +178,9 @@ class _$_Headers implements _Headers {
 
 abstract class _Headers implements Headers {
   factory _Headers(
-          {@JsonKey(name: "User-Agent") required final String userAgent,
-          @JsonKey(name: "X-Amzn-Trace-Id") required final String traceId}) =
-      _$_Headers;
+      {@JsonKey(name: "User-Agent") required final String userAgent,
+      @JsonKey(name: "X-Amzn-Trace-Id") required final String traceId,
+      @JsonKey(name: "Aabbcc") final String? bbc}) = _$_Headers;
 
   factory _Headers.fromJson(Map<String, dynamic> json) = _$_Headers.fromJson;
 
@@ -171,6 +190,9 @@ abstract class _Headers implements Headers {
   @override
   @JsonKey(name: "X-Amzn-Trace-Id")
   String get traceId;
+  @override
+  @JsonKey(name: "Aabbcc")
+  String? get bbc;
   @override
   @JsonKey(ignore: true)
   _$$_HeadersCopyWith<_$_Headers> get copyWith =>
