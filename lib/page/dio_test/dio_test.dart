@@ -2,9 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod_demo/common/http/http_manager.dart';
+import 'package:flutter_riverpod_demo/global.dart';
 import 'package:flutter_riverpod_demo/page/async_httpbin/http_bin_view_model.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mmkv/mmkv.dart';
 import 'package:nanoid/non_secure.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -128,6 +130,16 @@ class TestDio extends ConsumerWidget {
               debugPrint(ss);
             },
           ),
+          ListTile(
+            title: Text(Global.prefs.getString("123") ?? "sp default"),
+            onTap: () async =>
+                await Global.prefs.setString("123", "SharedPreferences"),
+          ),
+          ListTile(
+            title:
+                Text(MMKV.defaultMMKV().decodeString("456") ?? "mmkv default"),
+            onTap: () => MMKV.defaultMMKV().encodeString("456", "MMKV INJECT"),
+          )
         ],
       ),
     );

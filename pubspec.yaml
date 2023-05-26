@@ -58,6 +58,11 @@ dependencies:
   # nanoid
   nanoid: ^1.0.0
 
+  # mmkv
+  mmkv: ^1.2.17
+  shared_preferences: ^2.1.1
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
